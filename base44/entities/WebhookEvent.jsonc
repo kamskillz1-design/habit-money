@@ -1,0 +1,77 @@
+{
+  "name": "WebhookEvent",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "integration_connection_id": {
+      "type": "string"
+    },
+    "provider_name": {
+      "type": "string"
+    },
+    "external_event_id": {
+      "type": "string"
+    },
+    "event_type": {
+      "type": "string"
+    },
+    "received_at": {
+      "type": "string"
+    },
+    "processed_at": {
+      "type": "string"
+    },
+    "processing_status": {
+      "type": "string",
+      "enum": [
+        "received",
+        "processing",
+        "processed",
+        "ignored",
+        "failed",
+        "dead_letter"
+      ],
+      "default": "received"
+    },
+    "retry_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "payload_hash": {
+      "type": "string"
+    },
+    "error_message_safe": {
+      "type": "string"
+    },
+    "related_entity_type": {
+      "type": "string"
+    },
+    "related_entity_id": {
+      "type": "string"
+    }
+  },
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

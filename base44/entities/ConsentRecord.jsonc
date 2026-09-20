@@ -1,0 +1,93 @@
+{
+  "name": "ConsentRecord",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "consent_type": {
+      "type": "string",
+      "enum": [
+        "terms_of_service",
+        "privacy_policy",
+        "financial_education_disclaimer",
+        "essential_service_email",
+        "product_updates_email",
+        "marketing_email",
+        "push_notifications",
+        "analytics_optional",
+        "open_banking_connection",
+        "household_sharing"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "granted",
+        "withdrawn",
+        "not_required"
+      ],
+      "default": "granted"
+    },
+    "policy_version": {
+      "type": "string"
+    },
+    "consent_text": {
+      "type": "string"
+    },
+    "granted_at": {
+      "type": "string"
+    },
+    "withdrawn_at": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "ip_hash": {
+      "type": "string"
+    },
+    "user_agent_summary": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "consent_type",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

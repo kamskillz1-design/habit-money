@@ -1,0 +1,57 @@
+{
+  "name": "Household",
+  "type": "object",
+  "properties": {
+    "owner_user_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "default_currency": {
+      "type": "string",
+      "default": "EUR"
+    },
+    "timezone": {
+      "type": "string"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "sharing_description": {
+      "type": "string"
+    },
+    "member_user_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "owner_user_id",
+    "name"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.member_user_ids": "{{user.id}}"
+        }
+      ]
+    },
+    "create": {
+      "data.owner_user_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

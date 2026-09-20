@@ -1,0 +1,128 @@
+{
+  "name": "SavingsGoal",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "household_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "target_amount": {
+      "type": "integer"
+    },
+    "current_amount": {
+      "type": "integer",
+      "default": 0
+    },
+    "currency": {
+      "type": "string",
+      "default": "EUR"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "target_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "urgent"
+      ],
+      "default": "medium"
+    },
+    "goal_type": {
+      "type": "string",
+      "enum": [
+        "emergency_fund",
+        "travel",
+        "home",
+        "education",
+        "purchase",
+        "debt_reduction",
+        "buffer",
+        "other"
+      ],
+      "default": "other"
+    },
+    "image": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "paused",
+        "completed",
+        "cancelled",
+        "archived"
+      ],
+      "default": "active"
+    },
+    "suggested_weekly_contribution": {
+      "type": "integer"
+    },
+    "suggested_monthly_contribution": {
+      "type": "integer"
+    },
+    "auto_contribution_enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_shared": {
+      "type": "boolean",
+      "default": false
+    },
+    "completed_at": {
+      "type": "string"
+    },
+    "archived": {
+      "type": "boolean",
+      "default": false
+    },
+    "member_user_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "user_id",
+    "name",
+    "target_amount"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.member_user_ids": "{{user.id}}"
+        }
+      ]
+    },
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "name": "ImportBatch",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "household_id": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "CSV_import",
+        "open_banking",
+        "demo"
+      ]
+    },
+    "source_file_name": {
+      "type": "string"
+    },
+    "file_size": {
+      "type": "integer"
+    },
+    "imported_at": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "uploaded",
+        "mapping_required",
+        "validating",
+        "review_required",
+        "importing",
+        "completed",
+        "failed",
+        "cancelled"
+      ],
+      "default": "uploaded"
+    },
+    "total_rows": {
+      "type": "integer"
+    },
+    "accepted_rows": {
+      "type": "integer"
+    },
+    "duplicate_rows": {
+      "type": "integer"
+    },
+    "rejected_rows": {
+      "type": "integer"
+    },
+    "review_required_rows": {
+      "type": "integer"
+    },
+    "mapping_configuration": {
+      "type": "object"
+    },
+    "error_report_reference": {
+      "type": "string"
+    },
+    "completed_at": {
+      "type": "string"
+    },
+    "error_message": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "source"
+  ],
+  "rls": {
+    "read": {
+      "created_by_id": "{{user.id}}"
+    },
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

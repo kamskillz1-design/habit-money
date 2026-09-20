@@ -1,0 +1,87 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "notification_type": {
+      "type": "string"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "normal",
+        "high"
+      ],
+      "default": "normal"
+    },
+    "related_entity_type": {
+      "type": "string"
+    },
+    "related_entity_id": {
+      "type": "string"
+    },
+    "action_url": {
+      "type": "string"
+    },
+    "scheduled_at": {
+      "type": "string"
+    },
+    "delivered_at": {
+      "type": "string"
+    },
+    "read_at": {
+      "type": "string"
+    },
+    "dismissed_at": {
+      "type": "string"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "in_app",
+        "email",
+        "push"
+      ],
+      "default": "in_app"
+    },
+    "delivery_status": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "sent",
+        "delivered",
+        "failed",
+        "suppressed"
+      ],
+      "default": "delivered"
+    }
+  },
+  "required": [
+    "user_id",
+    "title",
+    "message"
+  ],
+  "rls": {
+    "read": {
+      "created_by_id": "{{user.id}}"
+    },
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

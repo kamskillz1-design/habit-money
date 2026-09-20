@@ -1,0 +1,104 @@
+{
+  "name": "IntegrationConnection",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "household_id": {
+      "type": "string"
+    },
+    "integration_type": {
+      "type": "string",
+      "enum": [
+        "CSV_import",
+        "open_banking",
+        "email_notifications",
+        "push_notifications",
+        "calendar",
+        "payment_subscription",
+        "webhook",
+        "other"
+      ]
+    },
+    "provider_name": {
+      "type": "string"
+    },
+    "connection_status": {
+      "type": "string",
+      "enum": [
+        "disconnected",
+        "connecting",
+        "connected",
+        "needs_reauth",
+        "sync_error",
+        "disabled"
+      ],
+      "default": "disconnected"
+    },
+    "connected_at": {
+      "type": "string"
+    },
+    "last_sync_at": {
+      "type": "string"
+    },
+    "last_successful_sync_at": {
+      "type": "string"
+    },
+    "last_error_at": {
+      "type": "string"
+    },
+    "last_error_message_safe": {
+      "type": "string"
+    },
+    "configuration_safe": {
+      "type": "object"
+    },
+    "consent_record_id": {
+      "type": "string"
+    },
+    "active": {
+      "type": "boolean",
+      "default": false
+    },
+    "disconnected_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "integration_type"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

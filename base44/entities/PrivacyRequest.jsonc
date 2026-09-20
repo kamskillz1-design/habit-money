@@ -1,0 +1,107 @@
+{
+  "name": "PrivacyRequest",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "request_type": {
+      "type": "string",
+      "enum": [
+        "data_access",
+        "data_export",
+        "correction",
+        "anonymisation",
+        "deletion",
+        "account_closure",
+        "consent_withdrawal"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "submitted",
+        "verification_required",
+        "verified",
+        "approved",
+        "rejected",
+        "processing",
+        "completed",
+        "cancelled"
+      ],
+      "default": "submitted"
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "verified",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "requested_at": {
+      "type": "string"
+    },
+    "reviewed_by_admin_id": {
+      "type": "string"
+    },
+    "reviewed_at": {
+      "type": "string"
+    },
+    "completed_at": {
+      "type": "string"
+    },
+    "legal_hold": {
+      "type": "boolean",
+      "default": false
+    },
+    "request_notes": {
+      "type": "string"
+    },
+    "admin_notes": {
+      "type": "string"
+    },
+    "result_reference": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "request_type"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

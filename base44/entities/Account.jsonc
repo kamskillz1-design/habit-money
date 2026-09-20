@@ -1,0 +1,122 @@
+{
+  "name": "Account",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "household_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "cash",
+        "current_account",
+        "savings_account",
+        "credit_card",
+        "loan",
+        "investment_reference",
+        "other"
+      ]
+    },
+    "currency": {
+      "type": "string",
+      "default": "EUR"
+    },
+    "institution_name": {
+      "type": "string"
+    },
+    "opening_balance": {
+      "type": "integer"
+    },
+    "current_balance": {
+      "type": "integer"
+    },
+    "last_balance_update_at": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "CSV_import",
+        "open_banking",
+        "demo"
+      ],
+      "default": "manual"
+    },
+    "external_provider": {
+      "type": "string"
+    },
+    "external_account_id": {
+      "type": "string"
+    },
+    "connection_status": {
+      "type": "string",
+      "enum": [
+        "not_connected",
+        "connected",
+        "needs_reauth",
+        "sync_error",
+        "disconnected"
+      ],
+      "default": "not_connected"
+    },
+    "is_shared": {
+      "type": "boolean",
+      "default": false
+    },
+    "include_in_cashflow": {
+      "type": "boolean",
+      "default": true
+    },
+    "include_in_net_worth": {
+      "type": "boolean",
+      "default": true
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "archived": {
+      "type": "boolean",
+      "default": false
+    },
+    "member_user_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "user_id",
+    "name",
+    "type"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.member_user_ids": "{{user.id}}"
+        }
+      ]
+    },
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

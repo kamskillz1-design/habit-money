@@ -1,0 +1,91 @@
+{
+  "name": "Category",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "household_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "category_type": {
+      "type": "string",
+      "enum": [
+        "income",
+        "essential_expense",
+        "discretionary_expense",
+        "savings",
+        "debt_payment",
+        "transfer",
+        "other"
+      ]
+    },
+    "icon": {
+      "type": "string"
+    },
+    "color": {
+      "type": "string"
+    },
+    "is_essential": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_temptation_category": {
+      "type": "boolean",
+      "default": false
+    },
+    "default_budget_amount": {
+      "type": "integer"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "archived": {
+      "type": "boolean",
+      "default": false
+    },
+    "display_order": {
+      "type": "integer"
+    },
+    "is_system": {
+      "type": "boolean",
+      "default": false
+    },
+    "member_user_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "user_id",
+    "name",
+    "category_type"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.member_user_ids": "{{user.id}}"
+        }
+      ]
+    },
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

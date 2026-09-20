@@ -1,0 +1,96 @@
+{
+  "name": "ChallengeTemplate",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "challenge_type": {
+      "type": "string",
+      "enum": [
+        "no_spend_day",
+        "no_spend_weekend",
+        "save_amount",
+        "expense_logging_streak",
+        "home_cooking",
+        "subscription_review",
+        "wait_24_hours",
+        "budget_check_in",
+        "emergency_fund_starter",
+        "custom"
+      ]
+    },
+    "duration_days": {
+      "type": "integer",
+      "default": 1
+    },
+    "target_type": {
+      "type": "string",
+      "enum": [
+        "days_logged",
+        "amount_saved",
+        "days_completed",
+        "count",
+        "none"
+      ]
+    },
+    "default_target_value": {
+      "type": "integer"
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": [
+        "easy",
+        "medium",
+        "hard"
+      ],
+      "default": "easy"
+    },
+    "category_focus": {
+      "type": "string"
+    },
+    "rules": {
+      "type": "string"
+    },
+    "positive_feedback_text": {
+      "type": "string"
+    },
+    "completion_reward_points": {
+      "type": "integer",
+      "default": 10
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "is_system_template": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "title",
+    "challenge_type"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

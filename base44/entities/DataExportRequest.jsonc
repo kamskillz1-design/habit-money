@@ -1,0 +1,92 @@
+{
+  "name": "DataExportRequest",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "export_type": {
+      "type": "string",
+      "enum": [
+        "transactions",
+        "budgets",
+        "goals",
+        "challenges",
+        "scenarios",
+        "full_personal_data",
+        "household_shared_data"
+      ]
+    },
+    "requested_at": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "requested",
+        "processing",
+        "completed",
+        "expired",
+        "failed",
+        "cancelled"
+      ],
+      "default": "requested"
+    },
+    "filters": {
+      "type": "object"
+    },
+    "secure_file_reference": {
+      "type": "string"
+    },
+    "expires_at": {
+      "type": "string"
+    },
+    "completed_at": {
+      "type": "string"
+    },
+    "downloaded_at": {
+      "type": "string"
+    },
+    "error_message": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "export_type"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "name": "BudgetPeriod",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "household_id": {
+      "type": "string"
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date"
+    },
+    "month_label": {
+      "type": "string"
+    },
+    "income_planned": {
+      "type": "integer"
+    },
+    "income_actual": {
+      "type": "integer"
+    },
+    "total_expense_budget": {
+      "type": "integer"
+    },
+    "total_expense_actual": {
+      "type": "integer"
+    },
+    "total_savings_target": {
+      "type": "integer"
+    },
+    "total_savings_actual": {
+      "type": "integer"
+    },
+    "budget_method": {
+      "type": "string",
+      "enum": [
+        "category_budget",
+        "zero_based",
+        "50_30_20",
+        "flexible",
+        "no_budget"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "closed",
+        "archived"
+      ],
+      "default": "active"
+    },
+    "completed_at": {
+      "type": "string"
+    },
+    "member_user_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "user_id",
+    "period_start",
+    "period_end"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.member_user_ids": "{{user.id}}"
+        }
+      ]
+    },
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

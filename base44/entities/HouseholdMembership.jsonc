@@ -1,0 +1,81 @@
+{
+  "name": "HouseholdMembership",
+  "type": "object",
+  "properties": {
+    "household_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "owner",
+        "member",
+        "viewer"
+      ],
+      "default": "member"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "invited",
+        "active",
+        "removed",
+        "declined"
+      ],
+      "default": "invited"
+    },
+    "can_view_shared_transactions": {
+      "type": "boolean",
+      "default": false
+    },
+    "can_add_shared_transactions": {
+      "type": "boolean",
+      "default": false
+    },
+    "can_manage_shared_budget": {
+      "type": "boolean",
+      "default": false
+    },
+    "can_manage_shared_goals": {
+      "type": "boolean",
+      "default": false
+    },
+    "invited_at": {
+      "type": "string"
+    },
+    "joined_at": {
+      "type": "string"
+    },
+    "removed_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "household_id",
+    "user_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        }
+      ]
+    },
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

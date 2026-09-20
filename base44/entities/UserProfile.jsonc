@@ -1,0 +1,115 @@
+{
+  "name": "UserProfile",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "full_name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "profile_photo": {
+      "type": "string"
+    },
+    "preferred_language": {
+      "type": "string",
+      "default": "en"
+    },
+    "timezone": {
+      "type": "string",
+      "default": "UTC"
+    },
+    "default_currency": {
+      "type": "string",
+      "default": "EUR"
+    },
+    "coaching_style": {
+      "type": "string",
+      "enum": [
+        "gentle",
+        "practical",
+        "motivating",
+        "minimal"
+      ],
+      "default": "practical"
+    },
+    "notification_frequency": {
+      "type": "string",
+      "enum": [
+        "none",
+        "essential_only",
+        "daily",
+        "weekly",
+        "personalised"
+      ],
+      "default": "essential_only"
+    },
+    "quiet_hours_start": {
+      "type": "string"
+    },
+    "quiet_hours_end": {
+      "type": "string"
+    },
+    "weekly_review_day": {
+      "type": "string",
+      "default": "Sunday"
+    },
+    "onboarding_completed": {
+      "type": "boolean",
+      "default": false
+    },
+    "account_status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "paused",
+        "pending_deletion",
+        "deleted",
+        "suspended"
+      ],
+      "default": "active"
+    },
+    "financial_education_disclaimer_accepted_at": {
+      "type": "string"
+    },
+    "terms_accepted_at": {
+      "type": "string"
+    },
+    "privacy_policy_accepted_at": {
+      "type": "string"
+    },
+    "last_login_at": {
+      "type": "string"
+    },
+    "plan": {
+      "type": "string",
+      "enum": [
+        "free",
+        "plus",
+        "household",
+        "premium"
+      ],
+      "default": "free"
+    }
+  },
+  "required": [
+    "user_id"
+  ],
+  "rls": {
+    "read": {
+      "created_by_id": "{{user.id}}"
+    },
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

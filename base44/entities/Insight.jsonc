@@ -1,0 +1,99 @@
+{
+  "name": "Insight",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "household_id": {
+      "type": "string"
+    },
+    "insight_type": {
+      "type": "string",
+      "enum": [
+        "spending_change",
+        "category_pattern",
+        "recurring_bill",
+        "budget_variance",
+        "goal_momentum",
+        "savings_opportunity",
+        "data_quality",
+        "positive_progress",
+        "custom"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "explanation": {
+      "type": "string"
+    },
+    "confidence_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date"
+    },
+    "related_category_id": {
+      "type": "string"
+    },
+    "related_goal_id": {
+      "type": "string"
+    },
+    "related_transaction_ids_summary": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "viewed",
+        "dismissed",
+        "unhelpful"
+      ],
+      "default": "active"
+    },
+    "viewed_at": {
+      "type": "string"
+    },
+    "dismissed_at": {
+      "type": "string"
+    },
+    "user_feedback": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "insight_type",
+    "title",
+    "message"
+  ],
+  "rls": {
+    "read": {
+      "created_by_id": "{{user.id}}"
+    },
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "household_id": {
+      "type": "string"
+    },
+    "actor_user_id": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string"
+    },
+    "entity_type": {
+      "type": "string"
+    },
+    "entity_id": {
+      "type": "string"
+    },
+    "safe_before_summary": {
+      "type": "string"
+    },
+    "safe_after_summary": {
+      "type": "string"
+    },
+    "occurred_at": {
+      "type": "string"
+    },
+    "session_reference": {
+      "type": "string"
+    },
+    "ip_hash": {
+      "type": "string"
+    },
+    "user_agent_summary": {
+      "type": "string"
+    },
+    "request_reference": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "action",
+    "entity_type"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "data.immutable_audit_record": {
+        "$ne": null
+      }
+    },
+    "delete": {
+      "data.immutable_audit_record": {
+        "$ne": null
+      }
+    }
+  }
+}

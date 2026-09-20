@@ -1,0 +1,107 @@
+{
+  "name": "WeeklyReview",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "household_id": {
+      "type": "string"
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date"
+    },
+    "total_income": {
+      "type": "integer"
+    },
+    "total_spending": {
+      "type": "integer"
+    },
+    "total_savings": {
+      "type": "integer"
+    },
+    "planned_budget_amount": {
+      "type": "integer"
+    },
+    "actual_budget_amount": {
+      "type": "integer"
+    },
+    "largest_category": {
+      "type": "string"
+    },
+    "spending_change_from_prior_period": {
+      "type": "integer"
+    },
+    "goal_progress_summary": {
+      "type": "string"
+    },
+    "challenge_summary": {
+      "type": "string"
+    },
+    "positive_win": {
+      "type": "string"
+    },
+    "reflection_prompt": {
+      "type": "string"
+    },
+    "user_reflection": {
+      "type": "string"
+    },
+    "next_week_focus": {
+      "type": "string"
+    },
+    "completed_at": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "generated",
+        "viewed",
+        "completed",
+        "skipped"
+      ],
+      "default": "generated"
+    },
+    "member_user_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "user_id",
+    "period_start",
+    "period_end"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.member_user_ids": "{{user.id}}"
+        }
+      ]
+    },
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}
