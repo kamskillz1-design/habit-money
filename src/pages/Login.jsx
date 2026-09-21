@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/api/supabaseClient";
 import { appOrigin } from "@/api/authUser";
 import { Button } from "@/components/ui/button";
@@ -15,8 +15,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  // Post-login destination (e.g. the MCP OAuth consent page sends users here
-  // with returnTo so the grant flow can resume). Same-origin paths only.
+  const navigate = useNavigate();
   const returnTo = safeReturnTo();
 
   const handleSubmit = async (e) => {
@@ -26,7 +25,7 @@ export default function Login() {
     try {
       const { error: signError } = await supabase.auth.signInWithPassword({ email, password });
       if (signError) throw signError;
-      window.location.href = returnTo;
+      navigate(returnTo || "/", { replace: true });
     } catch (err) {
       setError(err.message || "Invalid email or password");
     } finally {
@@ -37,7 +36,7 @@ export default function Login() {
   const handleGoogle = () => {
     supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: appOrigin() + returnTo },
+      options: { redirectTo: appOrigin() + (returnTo || "/") },
     });
   };
 
