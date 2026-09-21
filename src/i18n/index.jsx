@@ -8,35 +8,54 @@ export function isSupportedLanguage(code) {
   return SUPPORTED_LANGUAGES.some((l) => l.code === code);
 }
 
-// The single central language controller: reads, validates, persists, and broadcasts the active language.
-export function I18nProvider({ children }) {
-  const [language, setLanguageState] = useState(() => {
+export function readStoredLanguage() {
+  try {
     const stored = typeof localStorage !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null;
-    return isSupportedLanguage(stored) ? stored : "es";
-  });
+    return isSupportedLanguage(stored) ? stored : null;
+  } catch {
+    return null;
+  }
+}
+
+export function persistLanguage(code) {
+  if (!isSupportedLanguage(code)) return;
+  try {
+    localStorage.setItem(STORAGE_KEY, code);
+  } catch {
+    /* preference is non-essential */
+  }
+}
+
+export function I18nProvider({ children }) {
+  const [language, setLanguageState] = useState(() => readStoredLanguage() || "es");
 
   useEffect(() => {
     document.documentElement.lang = language;
     document.documentElement.dir = "ltr";
+    persistLanguage(language);
   }, [language]);
 
   const setLanguage = (code) => {
-    if (!isSupportedLanguage(code)) return; // unsupported codes preserve the current language
+    if (!isSupportedLanguage(code)) return;
+    persistLanguage(code);
     setLanguageState(code);
-    try { localStorage.setItem(STORAGE_KEY, code); } catch (e) { /* preference is non-essential */ }
   };
 
   const t = (key, params) => {
     let value = DICTIONARIES[language]?.[key] ?? DICTIONARIES.en[key] ?? key;
     if (params) {
       for (const [k, v] of Object.entries(params)) {
-        value = value.replace(new RegExp(`\\{\\{${k}\\}\\}`, "g"), String(v));
+        value = value.replace(new RegExp(`\\{\\${k}\\}`, "g"), String(v));
       }
     }
     return value;
   };
 
-  return <I18nContext.Provider value={{ language, setLanguage, t, supportedLanguages: SUPPORTED_LANGUAGES }}>{children}</I18nContext.Provider>;
+  return (
+    <I18nContext.Provider value={{ language, setLanguage, t, supportedLanguages: SUPPORTED_LANGUAGES }}>
+      {children}
+    </I18nContext.Provider>
+  );
 }
 
 export function useI18n() {
@@ -45,4 +64,4 @@ export function useI18n() {
   return ctx;
 }
 
-export { SUPPORTED_LANGUAGES };
+export { SUPPORTED_LANGUAGES, STORAGE_KEY };
