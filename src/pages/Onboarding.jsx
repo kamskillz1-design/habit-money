@@ -9,6 +9,7 @@ import { useStartChallenge } from "@/app/services/coaching";
 import { useCreateBudget } from "@/app/services/budget";
 import { PRIORITIES, COACHING_STYLES, NOTIFICATION_FREQUENCIES, WEEKDAYS, DISCLAIMER_KEY, CHALLENGE_LIBRARY } from "@/domain/constants";
 import DisclaimerBanner from "@/components/shared/DisclaimerBanner";
+import LanguageSwitcher from "@/components/shared/LanguageSwitcher";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -131,7 +132,10 @@ export default function Onboarding() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-xl">
-        <p className="text-xs font-medium text-muted-foreground mb-2">{t("onboarding.step", { current: step, total: TOTAL })}</p>
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <p className="text-xs font-medium text-muted-foreground">{t("onboarding.step", { current: step, total: TOTAL })}</p>
+          <LanguageSwitcher compact />
+        </div>
         <div className="rounded-3xl border bg-card shadow-sm p-6 md:p-8">
           {step === 1 && (
             <div className="space-y-4">
