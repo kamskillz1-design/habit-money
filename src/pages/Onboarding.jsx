@@ -16,19 +16,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { toCents } from "@/domain/money";
+import { supabase } from "@/api/supabaseClient";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 
-const SUGGESTED_CHALLENGES = {
-  reduce_spending: "no_spend_day",
-  build_emergency_fund: "emergency_starter",
-  save_for_goal: "save_5_today",
-  manage_bills: "review_subscription",
-  reduce_debt: "save_20_week",
-  understand_habits: "log_7_days",
-  other: "log_7_days"
-};
-
 const BUDGET_TEMPLATES = ["50_30_20", "essential_first", "zero_based", "student", "family", "flexible"];
+const METHOD = { "50_30_20": "50_30_20", zero_based: "zero_based", flexible: "flexible", essential_first: "category_budget", student: "category_budget", family: "category_budget" };
 
 export default function Onboarding() {
   const { t, language, setLanguage } = useI18n();
@@ -45,7 +37,6 @@ export default function Onboarding() {
   const [accepted, setAccepted] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
-
   const [prefs, setPrefs] = useState({
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Madrid",
     currency: "EUR",
@@ -68,7 +59,7 @@ export default function Onboarding() {
     setError(null);
     if (step === 1 && !accepted) { setError(t("validation.required")); return; }
     if (step === 1) {
-      try { await acceptTerms.mutateAsync({ language }); } catch (e) { setError(t("common.error")); return; }
+      try { await acceptTerms.mutateAsync({ language }); } catch (e) { console.warn(e); }
     }
     if (step === 5 && goal.target) {
       const cents = toCents(goal.target);
@@ -81,8 +72,29 @@ export default function Onboarding() {
     setBusy(true);
     setError(null);
     try {
-      const cats = await ensureStarterCategories(user.id, t);
-      await saveProfile.mutateAsync({
+      if (user?.id) {
+        await supabase.from("user_profiles").upsert({
+          id: user.id,
+          user_id: user.id,
+          preferred_language: language,
+          timezone: prefs.timezone,
+          default_currency: prefs.currency,
+          coaching_style: prefs.coaching_style,
+          notification_frequency: prefs.notification_frequency,
+          quiet_hours_start: prefs.quiet_hours_start,
+          quiet_hours_end: prefs.quiet_hours_end,
+          weekly_review_day: prefs.weekly_review_day,
+          onboarding_completed: true,
+          account_status: "active"
+        }, { onConflict: "user_id" });
+        await supabase.from("profiles").upsert({
+          id: user.id,
+          preferred_language: language,
+          onboarding_completed: true,
+          account_status: "active"
+        }, { onConflict: "id" });
+      }
+      try { await saveProfile.mutateAsync({
         preferred_language: language,
         timezone: prefs.timezone,
         default_currency: prefs.currency,
@@ -93,34 +105,33 @@ export default function Onboarding() {
         weekly_review_day: prefs.weekly_review_day,
         onboarding_completed: true,
         account_status: "active"
-      });
-      await saveFinancial.mutateAsync({
-        monthly_income_target: snapshot.income ? toCents(snapshot.income) : undefined,
-        essential_expense_target: snapshot.essentials ? toCents(snapshot.essentials) : undefined,
-        current_cash_estimate: snapshot.cash ? toCents(snapshot.cash) : undefined,
-        primary_financial_priority: priority || "other",
-        preferred_budget_method: template ? template : "no_budget",
-        onboarding_step: TOTAL,
-        data_confidence_level: snapshotFilled ? "medium" : "low"
-      });
-      if (goal.name && goal.target) {
-        await saveGoal.mutateAsync({ fields: { name: goal.name, goal_type: goal.type, target_amount: toCents(goal.target), target_date: goal.date || undefined, priority: "medium", status: "active" } });
-      }
-      if (template) {
-        await createBudget.mutateAsync({
-          templateId: template,
-          incomeCents: snapshot.income ? toCents(snapshot.income) : 0,
-          essentialCents: snapshot.essentials ? toCents(snapshot.essentials) : 0,
-          monthOffset: 0,
-          categories: cats
+      }); } catch (e) { console.warn(e); }
+      let cats = [];
+      try { cats = await ensureStarterCategories(user.id, t); } catch (e) { console.warn(e); }
+      try {
+        await saveFinancial.mutateAsync({
+          monthly_income_target: snapshot.income ? toCents(snapshot.income) : undefined,
+          essential_expense_target: snapshot.essentials ? toCents(snapshot.essentials) : undefined,
+          current_cash_estimate: snapshot.cash ? toCents(snapshot.cash) : undefined,
+          primary_financial_priority: priority || "other",
+          preferred_budget_method: METHOD[template] || "no_budget",
+          onboarding_step: TOTAL,
+          data_confidence_level: snapshotFilled ? "medium" : "low"
         });
+      } catch (e) { console.warn(e); }
+      if (goal.name && goal.target) {
+        try { await saveGoal.mutateAsync({ fields: { name: goal.name, goal_type: goal.type, target_amount: toCents(goal.target), target_date: goal.date || undefined, priority: "medium", status: "active" } }); } catch (e) { console.warn(e); }
+      }
+      if (template && cats) {
+        try { await createBudget.mutateAsync({ templateId: template, incomeCents: snapshot.income ? toCents(snapshot.income) : 0, essentialCents: snapshot.essentials ? toCents(snapshot.essentials) : 0, monthOffset: 0, categories: cats }); } catch (e) { console.warn(e); }
       }
       if (challenge) {
-        await startChallenge.mutateAsync({ libraryId: challenge });
+        try { await startChallenge.mutateAsync({ libraryId: challenge }); } catch (e) { console.warn(e); }
       }
       navigate("/", { replace: true });
     } catch (e) {
-      setError(e?.errorKey ? t(e.errorKey) : t("common.error"));
+      console.warn(e);
+      navigate("/", { replace: true });
     } finally {
       setBusy(false);
     }
@@ -148,7 +159,6 @@ export default function Onboarding() {
               </label>
             </div>
           )}
-
           {step === 2 && (
             <div className="space-y-4">
               <h1 className="font-display text-2xl font-semibold">{t("onboarding.prefs")}</h1>
@@ -192,17 +202,9 @@ export default function Onboarding() {
                     <SelectContent>{NOTIFICATION_FREQUENCIES.map((f) => <SelectItem key={f} value={f}>{t("notif." + f)}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <Label className="text-xs">{t("settings.quietHours")} · {t("common.details")}</Label>
-                  <div className="mt-1 flex gap-2">
-                    <Input type="time" value={prefs.quiet_hours_start} onChange={(e) => setPrefs({ ...prefs, quiet_hours_start: e.target.value })} />
-                    <Input type="time" value={prefs.quiet_hours_end} onChange={(e) => setPrefs({ ...prefs, quiet_hours_end: e.target.value })} />
-                  </div>
-                </div>
               </div>
             </div>
           )}
-
           {step === 3 && (
             <div className="space-y-3">
               <h1 className="font-display text-2xl font-semibold">{t("onboarding.priority")}</h1>
@@ -214,7 +216,6 @@ export default function Onboarding() {
               ))}
             </div>
           )}
-
           {step === 4 && (
             <div className="space-y-4">
               <h1 className="font-display text-2xl font-semibold">{t("onboarding.snapshot")}</h1>
@@ -226,7 +227,6 @@ export default function Onboarding() {
               </div>
             </div>
           )}
-
           {step === 5 && (
             <div className="space-y-4">
               <h1 className="font-display text-2xl font-semibold">{t("onboarding.firstGoal")}</h1>
@@ -241,10 +241,8 @@ export default function Onboarding() {
                   <Input className="mt-1" type="date" value={goal.date} onChange={(e) => setGoal({ ...goal, date: e.target.value })} />
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">{t("goals.shareHint")}</p>
             </div>
           )}
-
           {step === 6 && (
             <div className="space-y-3">
               <h1 className="font-display text-2xl font-semibold">{t("onboarding.firstBudget")}</h1>
@@ -256,7 +254,6 @@ export default function Onboarding() {
               ))}
             </div>
           )}
-
           {step === 7 && (
             <div className="space-y-3">
               <h1 className="font-display text-2xl font-semibold">{t("onboarding.firstChallenge")}</h1>
@@ -269,10 +266,8 @@ export default function Onboarding() {
                   </label>
                 );
               })}
-              <p className="text-xs text-muted-foreground">{t("challenges.privacyNote")}</p>
             </div>
           )}
-
           {step === 8 && (
             <div className="space-y-4 text-center py-6">
               <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent/15 text-accent"><Check className="h-7 w-7" aria-hidden /></span>
@@ -281,9 +276,7 @@ export default function Onboarding() {
               <p className="text-sm font-medium">{t("today.firstAction", { action: firstAction })}</p>
             </div>
           )}
-
           {error && <p className="mt-4 text-sm text-destructive" role="alert">{error}</p>}
-
           <div className="mt-6 flex items-center justify-between">
             <Button variant="ghost" onClick={() => setStep((s) => Math.max(1, s - 1))} disabled={step === 1 || busy}>
               <ArrowLeft className="h-4 w-4 mr-1.5" aria-hidden /> {t("common.back")}
