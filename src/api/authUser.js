@@ -1,8 +1,34 @@
 import { supabase } from "@/api/supabaseClient";
 
-/** Merge auth.users + public.profiles (+ user_profiles fallback) into the shape pages already read. */
+async function ensureProfileRows(sessionUser) {
+  const id = sessionUser.id;
+  const email = sessionUser.email || "";
+  const full_name =
+    sessionUser.user_metadata?.full_name ||
+    sessionUser.user_metadata?.name ||
+    (email.includes("@") ? email.split("@")[0] : "");
+
+  const { data: profile } = await supabase.from("profiles").select("id").eq("id", id).maybeSingle();
+  if (!profile) {
+    await supabase.from("profiles").upsert(
+      { id, email, full_name, role: "user" },
+      { onConflict: "id" }
+    );
+  }
+
+  const { data: up } = await supabase.from("user_profiles").select("id").eq("user_id", id).maybeSingle();
+  if (!up) {
+    await supabase.from("user_profiles").upsert(
+      { id, user_id: id, email, full_name },
+      { onConflict: "user_id" }
+    );
+  }
+}
+
 export async function loadMergedUser(sessionUser) {
   if (!sessionUser?.id) return null;
+
+  await ensureProfileRows(sessionUser);
 
   const { data: profile } = await supabase
     .from("profiles")
