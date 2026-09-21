@@ -26,6 +26,18 @@ export function persistLanguage(code) {
   }
 }
 
+function applyParams(value, params) {
+  if (!params || typeof value !== "string") return value;
+  let out = value;
+  for (const [k, v] of Object.entries(params)) {
+    const s = String(v);
+    out = out.replaceAll("{{ " + k + " }}", s);
+    out = out.replaceAll("{{" + k + "}}", s);
+    out = out.replaceAll("{" + k + "}", s);
+  }
+  return out;
+}
+
 export function I18nProvider({ children }) {
   const [language, setLanguageState] = useState(() => readStoredLanguage() || "es");
 
@@ -42,13 +54,8 @@ export function I18nProvider({ children }) {
   };
 
   const t = (key, params) => {
-    let value = DICTIONARIES[language]?.[key] ?? DICTIONARIES.en[key] ?? key;
-    if (params && typeof value === "string") {
-      for (const [k, v] of Object.entries(params)) {
-        value = value.replaceAll("{" + k + "}", String(v));
-      }
-    }
-    return value;
+    const value = DICTIONARIES[language]?.[key] ?? DICTIONARIES.en[key] ?? key;
+    return applyParams(value, params);
   };
 
   return (
