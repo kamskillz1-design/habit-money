@@ -1,4 +1,4 @@
-// Accounts, categories, transactions, recurring bills. Ownership is enforced server-side by row-level security.
+// Accounts, categories, transactions, recurring bills.
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { repo } from "@/adapters/base44/entities";
 import { useAuth } from "@/lib/AuthContext";
@@ -19,6 +19,26 @@ export function useCategories() {
 
 export function useTransactions(limit = 500) {
   return useQuery({ queryKey: ["transactions"], queryFn: () => repo("Transaction").filter({}, "-transaction_date", limit) });
+}
+
+export async function ensureDefaultAccount(userId) {
+  const existing = await repo("Account").filter({}, undefined, 50);
+  const live = (existing || []).filter((a) => !a.archived);
+  if (live.length) return live[0];
+  return repo("Account").create({
+    user_id: userId,
+    name: "Cash",
+    type: "cash",
+    currency: "EUR",
+    source: "manual",
+    connection_status: "not_connected",
+    opening_balance: 0,
+    current_balance: 0,
+    include_in_cashflow: true,
+    include_in_net_worth: true,
+    active: true,
+    archived: false,
+  });
 }
 
 export function useSaveAccount() {
@@ -91,16 +111,24 @@ export function useSaveTransaction() {
       const notes = validateText(clean.notes, { maxLength: 2000 });
       for (const v of [dir, date, amount, merchant, notes]) if (!v.ok) throw { code: "validation_error", errorKey: v.errorKey };
       const isTransfer = clean.is_transfer || clean.direction === "transfer_in" || clean.direction === "transfer_out";
+      let accountId = clean.account_id;
+      if (!accountId) {
+        const acc = await ensureDefaultAccount(user.id);
+        accountId = acc.id;
+      }
       const data = {
         ...clean,
+        account_id: accountId,
         merchant_name: merchant.value || undefined,
         notes: notes.value || undefined,
         amount: amount.value,
         transaction_date: date.value,
         is_transfer: !!isTransfer,
-        category_id: isTransfer ? undefined : clean.category_id || undefined,
+        category_id: isTransfer || !clean.category_id ? undefined : clean.category_id,
         idempotency_key: id ? undefined : `${user.id}-${Date.now()}-${Math.round(Math.random() * 1e6)}`
       };
+      delete data.category_id;
+      if (!isTransfer && clean.category_id) data.category_id = clean.category_id;
       if (id) {
         const updated = await repo("Transaction").update(id, data);
         await writeAudit({ userId: user.id, action: "transaction_updated", entityType: "Transaction", entityId: id });
@@ -110,7 +138,10 @@ export function useSaveTransaction() {
       await writeAudit({ userId: user.id, action: duplicate ? "transaction_duplicated" : "transaction_created", entityType: "Transaction", entityId: created.id });
       return created;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["transactions"] })
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["accounts"] });
+    }
   });
 }
 
