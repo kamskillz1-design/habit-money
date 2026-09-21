@@ -43,9 +43,9 @@ export function I18nProvider({ children }) {
 
   const t = (key, params) => {
     let value = DICTIONARIES[language]?.[key] ?? DICTIONARIES.en[key] ?? key;
-    if (params) {
+    if (params && typeof value === "string") {
       for (const [k, v] of Object.entries(params)) {
-        value = value.replace(new RegExp(`\\{\\${k}\\}`, "g"), String(v));
+        value = value.replaceAll("{" + k + "}", String(v));
       }
     }
     return value;
