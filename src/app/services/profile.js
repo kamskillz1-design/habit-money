@@ -5,14 +5,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { writeAudit } from "./audit";
 import { pickFields } from "@/domain/validation";
 
-// Only user-writable profile fields — plan and audit fields are server-controlled.
 const PROFILE_FIELDS = ["full_name", "preferred_language", "timezone", "default_currency", "coaching_style", "notification_frequency", "quiet_hours_start", "quiet_hours_end", "weekly_review_day", "onboarding_completed", "account_status", "last_login_at", "profile_photo"];
-
-const CONSENT_TIMESTAMP_FIELDS = {
-  terms_of_service: "terms_accepted_at",
-  privacy_policy: "privacy_policy_accepted_at",
-  financial_education_disclaimer: "financial_education_disclaimer_accepted_at"
-};
 
 export function useUserProfile() {
   const { user } = useAuth();
@@ -60,7 +53,6 @@ export function useSaveFinancialProfile() {
   });
 }
 
-// Terms + privacy + educational disclaimer acceptance: recorded on the profile, in consent history, and in the audit log.
 export function useAcceptTerms() {
   const { user } = useAuth();
   const qc = useQueryClient();
@@ -77,16 +69,22 @@ export function useAcceptTerms() {
         onboarding_completed: false,
         account_status: "active"
       };
-      const profile = existing ? await repo("UserProfile").update(existing.id, profileData) : await repo("UserProfile").create(profileData);
-      await repo("ConsentRecord").bulkCreate(
-        ["terms_of_service", "privacy_policy", "financial_education_disclaimer"].map((type) => ({
-          user_id: user.id,
-          consent_type: type,
-          status: "granted",
-          granted_at: now,
-          source: "onboarding"
-        }))
-      );
+      const profile = existing
+        ? await repo("UserProfile").update(existing.id, profileData)
+        : await repo("UserProfile").create(profileData);
+      try {
+        await repo("ConsentRecord").bulkCreate(
+          ["terms_of_service", "privacy_policy", "financial_education_disclaimer"].map((type) => ({
+            user_id: user.id,
+            consent_type: type,
+            status: "granted",
+            granted_at: now,
+            source: "onboarding"
+          }))
+        );
+      } catch (e) {
+        console.warn("consent_write_failed", e?.message || e);
+      }
       await writeAudit({ userId: user.id, action: "terms_accepted", entityType: "UserProfile", entityId: profile.id, after: { accepted: true } });
       return profile;
     },
