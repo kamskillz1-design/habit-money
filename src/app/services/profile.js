@@ -1,6 +1,7 @@
-// Profile & consent application service. UI never touches the SDK.
+// Profile & consent application service.
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { repo } from "@/adapters/base44/entities";
+import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { writeAudit } from "./audit";
 import { pickFields } from "@/domain/validation";
@@ -58,20 +59,43 @@ export function useAcceptTerms() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ language }) => {
+      if (!user?.id) throw new Error("Not signed in");
       const now = new Date().toISOString();
-      const existing = (await repo("UserProfile").filter({}, "-created_date", 5))[0];
-      const profileData = {
+      const row = {
+        id: user.id,
         user_id: user.id,
-        preferred_language: language,
+        email: user.email || null,
+        full_name: user.full_name || null,
+        preferred_language: language || "es",
         terms_accepted_at: now,
         privacy_policy_accepted_at: now,
         financial_education_disclaimer_accepted_at: now,
         onboarding_completed: false,
-        account_status: "active"
+        account_status: "active",
       };
-      const profile = existing
-        ? await repo("UserProfile").update(existing.id, profileData)
-        : await repo("UserProfile").create(profileData);
+
+      await supabase.from("profiles").upsert(
+        {
+          id: user.id,
+          email: user.email || null,
+          full_name: user.full_name || null,
+          preferred_language: language || "es",
+          terms_accepted_at: now,
+          privacy_policy_accepted_at: now,
+          financial_education_disclaimer_accepted_at: now,
+          onboarding_completed: false,
+          account_status: "active",
+        },
+        { onConflict: "id" }
+      );
+
+      const { data, error } = await supabase
+        .from("user_profiles")
+        .upsert(row, { onConflict: "user_id" })
+        .select("*")
+        .maybeSingle();
+      if (error) throw error;
+
       try {
         await repo("ConsentRecord").bulkCreate(
           ["terms_of_service", "privacy_policy", "financial_education_disclaimer"].map((type) => ({
@@ -79,18 +103,24 @@ export function useAcceptTerms() {
             consent_type: type,
             status: "granted",
             granted_at: now,
-            source: "onboarding"
+            source: "onboarding",
           }))
         );
       } catch (e) {
         console.warn("consent_write_failed", e?.message || e);
       }
-      await writeAudit({ userId: user.id, action: "terms_accepted", entityType: "UserProfile", entityId: profile.id, after: { accepted: true } });
-      return profile;
+      await writeAudit({
+        userId: user.id,
+        action: "terms_accepted",
+        entityType: "UserProfile",
+        entityId: data?.id || user.id,
+        after: { accepted: true },
+      });
+      return data;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["userProfile"] });
       qc.invalidateQueries({ queryKey: ["consents"] });
-    }
+    },
   });
 }
